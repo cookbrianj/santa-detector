@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		2E3E4CDD1C13890400E85249 /* christmas_hat.png in Resources */ = {isa = PBXBuildFile; fileRef = 2E3E4CDC1C13890400E85249 /* christmas_hat.png */; };
 		2E3E4CDF1C138C4200E85249 /* beard.png in Resources */ = {isa = PBXBuildFile; fileRef = 2E3E4CDE1C138C4200E85249 /* beard.png */; };
+		2EF42FF31C1BC6F700F7C579 /* VideoTools.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EF42FF21C1BC6F700F7C579 /* VideoTools.swift */; };
 		2EF9A8641C13308600FE5F01 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EF9A8631C13308600FE5F01 /* AppDelegate.swift */; };
 		2EF9A8661C13308600FE5F01 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EF9A8651C13308600FE5F01 /* ViewController.swift */; };
 		2EF9A8691C13308600FE5F01 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 2EF9A8671C13308600FE5F01 /* Main.storyboard */; };
@@ -32,6 +33,7 @@
 /* Begin PBXFileReference section */
 		2E3E4CDC1C13890400E85249 /* christmas_hat.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = christmas_hat.png; sourceTree = "<group>"; };
 		2E3E4CDE1C138C4200E85249 /* beard.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = beard.png; sourceTree = "<group>"; };
+		2EF42FF21C1BC6F700F7C579 /* VideoTools.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VideoTools.swift; sourceTree = "<group>"; };
 		2EF9A8601C13308600FE5F01 /* SantaDetector.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SantaDetector.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2EF9A8631C13308600FE5F01 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		2EF9A8651C13308600FE5F01 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -64,6 +66,24 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		2EF42FEC1C1BC64000F7C579 /* Graphics */ = {
+			isa = PBXGroup;
+			children = (
+				2EF9C79C1C1902E3003B0528 /* mustache.png */,
+				2E3E4CDE1C138C4200E85249 /* beard.png */,
+				2E3E4CDC1C13890400E85249 /* christmas_hat.png */,
+			);
+			name = Graphics;
+			sourceTree = "<group>";
+		};
+		2EF42FED1C1BC64700F7C579 /* Sounds */ = {
+			isa = PBXGroup;
+			children = (
+				2EF9C79A1C19010B003B0528 /* hohoho.wav */,
+			);
+			name = Sounds;
+			sourceTree = "<group>";
+		};
 		2EF9A8571C13308600FE5F01 = {
 			isa = PBXGroup;
 			children = (
@@ -85,12 +105,11 @@
 		2EF9A8621C13308600FE5F01 /* SantaDetector */ = {
 			isa = PBXGroup;
 			children = (
-				2EF9C79A1C19010B003B0528 /* hohoho.wav */,
-				2EF9C79C1C1902E3003B0528 /* mustache.png */,
-				2E3E4CDE1C138C4200E85249 /* beard.png */,
-				2E3E4CDC1C13890400E85249 /* christmas_hat.png */,
+				2EF42FED1C1BC64700F7C579 /* Sounds */,
+				2EF42FEC1C1BC64000F7C579 /* Graphics */,
 				2EF9A8631C13308600FE5F01 /* AppDelegate.swift */,
 				2EF9A8651C13308600FE5F01 /* ViewController.swift */,
+				2EF42FF21C1BC6F700F7C579 /* VideoTools.swift */,
 				2EF9A8671C13308600FE5F01 /* Main.storyboard */,
 				2EF9A86A1C13308600FE5F01 /* Assets.xcassets */,
 				2EF9A86C1C13308600FE5F01 /* LaunchScreen.storyboard */,
@@ -215,6 +234,7 @@
 			files = (
 				2EF9A8661C13308600FE5F01 /* ViewController.swift in Sources */,
 				2EF9A8641C13308600FE5F01 /* AppDelegate.swift in Sources */,
+				2EF42FF31C1BC6F700F7C579 /* VideoTools.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

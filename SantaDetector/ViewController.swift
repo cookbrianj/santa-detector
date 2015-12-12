@@ -22,6 +22,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
     var hatImgView = UIImageView(image: UIImage(named: "christmas_hat.png"))
     var beardImgView = UIImageView(image: UIImage(named: "beard.png"))
     var mustacheImgView = UIImageView(image: UIImage(named: "mustache.png"))
+    let videoUtil = VideoTools()
     
     @IBOutlet weak var imgView: UIImageView!
     
@@ -91,17 +92,16 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         let features = self.faceDetector.featuresInImage(cameraImage, options: [ CIDetectorImageOrientation : exifOrientation])
         
         let fdesc = CMSampleBufferGetFormatDescription(sampleBuffer)
-        let clap = CMVideoFormatDescriptionGetCleanAperture(fdesc!, false)
+        let cleanAperture = CMVideoFormatDescriptionGetCleanAperture(fdesc!, false)
         
         dispatch_async(dispatch_get_main_queue()) {
             let parentFrameSize = self.view.frame.size
             let gravity = self.previewLayer.videoGravity
             
-            let previewBox = self.previewBoxWithGravity(gravity, frameSize: parentFrameSize, apertureSize: clap.size)
-            self.detectedFace(features, clap: clap, previewBox: previewBox)
+            let previewBox = self.videoUtil.previewBoxWithGravity(gravity, frameSize: parentFrameSize, apertureSize: cleanAperture.size)
+            self.detectedFace(features, clap: cleanAperture, previewBox: previewBox)
             self.imgView.image = UIImage(CIImage: cameraImage, scale: 1.0, orientation: .Right)
         }
-        
     }
     
     func detectedFace(features: NSArray, clap: CGRect, previewBox:CGRect) {
@@ -119,7 +119,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         for ff in features {
             var faceRect = ff.bounds
             
-            faceRect = convertFrame(faceRect, previewBox: previewBox, videoBox: clap, isMirrored: false)
+            faceRect = self.videoUtil.convertFrame(faceRect, previewBox: previewBox, videoBox: clap, isMirrored: false)
             
             let hat_width = CGFloat(290.0)
             let hat_height = CGFloat(360.0)
@@ -158,6 +158,12 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         UIImageWriteToSavedPhotosAlbum(imageFromView(self.imgView), nil, nil, nil)
     }
     
+    /* 
+        Ideally this would not exist because it violates the main thread.
+        In a production app, capture image with AVCaptureStillImageOutput
+        using captureStillImageAsynchronouslyFromConnection:
+    */
+    
     func imageFromView(view: UIView) -> UIImage {
         UIGraphicsBeginImageContextWithOptions(view.bounds.size, true, 0)
         view.drawViewHierarchyInRect(view.bounds, afterScreenUpdates: true)
@@ -165,83 +171,5 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         UIGraphicsEndImageContext()
         return image
     }
-    
-    func previewBoxWithGravity(gravity: NSString, frameSize: CGSize, apertureSize: CGSize) -> CGRect {
-        let apertureRatio = apertureSize.height / apertureSize.width
-        let viewRatio = frameSize.width / frameSize.height
-        
-        var size = CGSizeZero
-        if (gravity.isEqualToString(AVLayerVideoGravityResizeAspectFill)) {
-            if (viewRatio > apertureRatio) {
-                size.width = frameSize.width
-                size.height = apertureSize.width * (frameSize.width / apertureSize.height)
-            } else {
-                size.width = apertureSize.height * (frameSize.height / apertureSize.width)
-                size.height = frameSize.height
-            }
-        } else if (gravity.isEqualToString(AVLayerVideoGravityResizeAspect)) {
-            if (viewRatio > apertureRatio) {
-                size.width = apertureSize.height * (frameSize.height / apertureSize.width)
-                size.height = frameSize.height
-            } else {
-                size.width = frameSize.width
-                size.height = apertureSize.width * (frameSize.width / apertureSize.height)
-            }
-        } else {
-            size.width = frameSize.width
-            size.height = frameSize.height
-        }
-        
-        var vidBox = CGRectZero
-        vidBox.size = size
-        if (size.width < frameSize.width) {
-            vidBox.origin.x = (frameSize.width - size.width) / 2
-        } else {
-            vidBox.origin.x = (size.width - frameSize.width) / 2
-        }
-        
-        if (size.height < frameSize.height) {
-            vidBox.origin.y = (frameSize.height - size.height) / 2
-        } else {
-            vidBox.origin.y = (size.height - frameSize.height) / 2
-        }
-        
-        return vidBox
-    }
-    
-    func convertFrame(var originalFrame: CGRect, previewBox: CGRect, videoBox: CGRect, isMirrored: Bool) -> CGRect {
-        var temp = originalFrame.size.width
-        originalFrame.size.width = originalFrame.size.height
-        originalFrame.size.height = temp
-        temp = originalFrame.origin.x
-        originalFrame.origin.x = originalFrame.origin.y
-        originalFrame.origin.y = temp
-        
-        let widthScaleAmount = previewBox.size.width / videoBox.size.height
-        let heightScaleAmount = previewBox.size.height / videoBox.size.width
-        
-        originalFrame.size.width = originalFrame.size.width * widthScaleAmount
-        originalFrame.size.height = originalFrame.size.height * heightScaleAmount
-        originalFrame.origin.x = originalFrame.origin.x * widthScaleAmount
-        originalFrame.origin.y = originalFrame.origin.y * heightScaleAmount
-        
-        switch isMirrored {
-        case true:
-            originalFrame = CGRectOffset(originalFrame, previewBox.origin.x + previewBox.size.width - originalFrame.size.width - (originalFrame.origin.x * 2), previewBox.origin.y)
-        default:
-            originalFrame = CGRectOffset(originalFrame, previewBox.origin.x, previewBox.origin.y)
-        }
-        
-        /*
-        if (isMirrored) {
-            originalFrame = CGRectOffset(originalFrame, previewBox.origin.x + previewBox.size.width - originalFrame.size.width - (originalFrame.origin.x * 2), previewBox.origin.y)
-        } else {
-            originalFrame = CGRectOffset(originalFrame, previewBox.origin.x, previewBox.origin.y)
-        }
-        */
-        
-        return originalFrame
-    }
-
 }
 
