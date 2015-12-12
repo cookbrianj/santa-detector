@@ -22,7 +22,9 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
     var hatImgView = UIImageView(image: UIImage(named: "christmas_hat.png"))
     var beardImgView = UIImageView(image: UIImage(named: "beard.png"))
     var mustacheImgView = UIImageView(image: UIImage(named: "mustache.png"))
+    
     let videoUtil = VideoTools()
+    let exifOrientation = 6
     
     @IBOutlet weak var imgView: UIImageView!
     
@@ -88,7 +90,6 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         let attachments : NSDictionary = CMCopyDictionaryOfAttachments(kCFAllocatorDefault, sampleBuffer, kCMAttachmentMode_ShouldPropagate)!
         let cameraImage = CIImage(CVPixelBuffer: pixelBuffer!, options: (attachments as! [String : AnyObject]))
         
-        let exifOrientation = 6
         let features = self.faceDetector.featuresInImage(cameraImage, options: [ CIDetectorImageOrientation : exifOrientation])
         
         let fdesc = CMSampleBufferGetFormatDescription(sampleBuffer)
@@ -104,7 +105,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         }
     }
     
-    func detectedFace(features: NSArray, clap: CGRect, previewBox:CGRect) {
+    func detectedFace(features: Array<CIFeature>, clap: CGRect, previewBox:CGRect) {
         if features.count < 1 {
             self.hatImgView.hidden = true
             self.beardImgView.hidden = true
@@ -116,7 +117,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
             self.mustacheImgView.hidden = false
         }
         
-        for ff in features {
+        features.forEach { (ff:CIFeature) -> () in
             var faceRect = ff.bounds
             
             faceRect = self.videoUtil.convertFrame(faceRect, previewBox: previewBox, videoBox: clap, isMirrored: false)
