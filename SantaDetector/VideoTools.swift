@@ -18,6 +18,7 @@ class VideoTools: NSObject {
         let viewRatio = frameSize.width / frameSize.height
         
         var size = CGSizeZero
+        
         if (gravity.isEqualToString(AVLayerVideoGravityResizeAspectFill)) {
             if (viewRatio > apertureRatio) {
                 size.width = frameSize.width
