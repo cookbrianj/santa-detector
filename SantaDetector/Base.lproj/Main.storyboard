@@ -16,22 +16,8 @@
                     <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
                         <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <subviews>
-                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="YSt-F6-qfs">
-                                <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
-                            </imageView>
-                        </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
-                        <constraints>
-                            <constraint firstItem="YSt-F6-qfs" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" id="H7Q-gN-SOZ"/>
-                            <constraint firstAttribute="trailing" secondItem="YSt-F6-qfs" secondAttribute="trailing" id="SSL-SX-qfb"/>
-                            <constraint firstItem="YSt-F6-qfs" firstAttribute="top" secondItem="8bC-Xf-vdC" secondAttribute="top" id="jDW-Mn-v5Y"/>
-                            <constraint firstItem="wfy-db-euE" firstAttribute="top" secondItem="YSt-F6-qfs" secondAttribute="bottom" id="uWR-Xe-gba"/>
-                        </constraints>
                     </view>
-                    <connections>
-                        <outlet property="imgView" destination="YSt-F6-qfs" id="Y1E-F1-E9E"/>
-                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>

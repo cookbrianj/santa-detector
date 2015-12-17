@@ -27,8 +27,6 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
     let videoUtil = VideoTools()
     let exifOrientation = 6
     
-    @IBOutlet weak var imgView: UIImageView!
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -54,17 +52,14 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
             let input = try AVCaptureDeviceInput(device: frontCamera)
             captureSession.addInput(input)
         } catch {
-            print("can't access camera")
+            print("can't access camera...bailing...")
             return
         }
         
         imageOutput.outputSettings = [AVVideoCodecKey:AVVideoCodecJPEG]
-        
         if captureSession.canAddOutput(imageOutput) {
             captureSession.addOutput(imageOutput)
         }
-        
-        //self.view.layer.addSublayer(self.previewLayer)
         
         let videoOutput = AVCaptureVideoDataOutput()
         
@@ -72,11 +67,11 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         if captureSession.canAddOutput(videoOutput) {
             captureSession.addOutput(videoOutput)
         }
-
+        
         self.previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
-        self.imgView.layer.addSublayer(self.previewLayer)
+        self.view.layer.addSublayer(self.previewLayer)
         self.previewLayer.videoGravity = AVLayerVideoGravityResizeAspect
-        let rootLayer = self.imgView.layer
+        let rootLayer = self.view.layer
         rootLayer.masksToBounds = true
         self.previewLayer.frame = self.view.bounds
         rootLayer.addSublayer(self.previewLayer)
@@ -84,13 +79,13 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         captureSession.startRunning()
         
         self.hatImgView.contentMode = .ScaleToFill
-        self.imgView.addSubview(self.hatImgView)
+        self.view.addSubview(self.hatImgView)
         
         self.beardImgView.contentMode = .ScaleToFill
-        self.imgView.addSubview(self.beardImgView)
+        self.view.addSubview(self.beardImgView)
         
         self.mustacheImgView.contentMode = .ScaleToFill
-        self.imgView.addSubview(self.mustacheImgView)
+        self.view.addSubview(self.mustacheImgView)
         
         startDetection()
     }
@@ -115,7 +110,6 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
             
             let previewBox = self.videoUtil.previewBoxWithGravity(gravity, frameSize: parentFrameSize, apertureSize: cleanAperture.size)
             self.detectedFace(features, clap: cleanAperture, previewBox: previewBox)
-            //self.imgView.image = UIImage(CIImage: cameraImage, scale: 1.0, orientation: .Right)
         }
     }
     
@@ -136,32 +130,11 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
             
             faceRect = self.videoUtil.convertFrame(faceRect, previewBox: previewBox, videoBox: clap, isMirrored: true)
             
-            let hat_width = CGFloat(290.0)
-            let hat_height = CGFloat(360.0)
-            let head_start_y = CGFloat(150.0)
-            let head_start_x = CGFloat(78.0)
-            
-            var width = faceRect.size.width * (hat_width / (hat_width - head_start_x))
-            var height = width * hat_height/hat_width
-            var y = faceRect.origin.y - (height * head_start_y) / hat_height
-            var x = faceRect.origin.x - (head_start_x * width / hat_width)
-            self.hatImgView.frame = CGRectMake(x, y, width, height)
-            
-            let beard_width = CGFloat(192.0)
-            let beard_height = CGFloat(171.0)
-            width = faceRect.size.width * 0.6
-            height = width * beard_height/beard_width
-            y = faceRect.origin.y + faceRect.size.height - (85 * height/beard_height)
-            x = faceRect.origin.x + (faceRect.size.width - width) / 2
-            self.beardImgView.frame = CGRectMake(x, y, width, height)
-            
-            let mustache_width = CGFloat(212.0)
-            let mustache_height = CGFloat(58.0)
-            width = faceRect.size.width * 0.9
-            height = width * mustache_height/mustache_width
-            y = y - height + 5
-            x = faceRect.origin.x + (faceRect.size.width - width)/2
-            self.mustacheImgView.frame = CGRectMake(x, y, width, height)
+            let hatRect = hatDestRect(290.0, hat_height: 360.0, faceRect: faceRect)
+            self.hatImgView.frame = hatRect
+            let beardRect = beardDestRect(192.0, beard_height: 171.0, faceRect: faceRect)
+            self.beardImgView.frame = beardRect
+            self.mustacheImgView.frame = mustacheDestRect(212.0, mustache_height: 58.0, x: beardRect.origin.x, y: beardRect.origin.y, faceRect: faceRect)
         }
         
         let elapsedTime = NSDate().timeIntervalSinceDate(self.lastPictureTime)
@@ -170,83 +143,76 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         
         self.lastPictureTime = NSDate.init()
         audioPlayer.play()
-        //UIImageWriteToSavedPhotosAlbum(imageFromView(self.imgView), nil, nil, nil)
+
         saveToCameraRoll()
     }
     
-    /* 
-        Ideally this should not exist because it violates the main thread.
-        In a production app, capture image with AVCaptureStillImageOutput
-        using captureStillImageAsynchronouslyFromConnection:
-
-    func imageFromView(view: UIView) -> UIImage {
-        UIGraphicsBeginImageContextWithOptions(view.bounds.size, true, 0)
-        view.drawViewHierarchyInRect(view.bounds, afterScreenUpdates: true)
-        let image = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
-        return image
+    func hatDestRect(hat_width: CGFloat, hat_height: CGFloat, faceRect: CGRect) -> CGRect {
+        let head_start_y = CGFloat(150.0)
+        let head_start_x = CGFloat(78.0)
+        
+        let width = faceRect.size.width * (hat_width / (hat_width - head_start_x))
+        let height = width * hat_height/hat_width
+        let y = faceRect.origin.y - (height * head_start_y) / hat_height
+        let x = faceRect.origin.x - (head_start_x * width / hat_width)
+        
+        return CGRectMake(x, y, width, height)
     }
-
-    */
-
+    
+    func beardDestRect(beard_width: CGFloat, beard_height: CGFloat, faceRect: CGRect) -> CGRect {
+        let width = faceRect.size.width * 0.6
+        let height = width * beard_height/beard_width
+        let y = faceRect.origin.y + faceRect.size.height - (85 * height/beard_height)
+        let x = faceRect.origin.x + (faceRect.size.width - width) / 2
+        
+        return CGRectMake(x, y, width, height)
+    }
+    
+    func mustacheDestRect(mustache_width: CGFloat, mustache_height: CGFloat, x: CGFloat, y: CGFloat, faceRect: CGRect) -> CGRect {
+        let width = faceRect.size.width * 0.9
+        let height = width * mustache_height/mustache_width
+        let y = y - height + 5
+        let x = faceRect.origin.x + (faceRect.size.width - width)/2
+        
+        return CGRectMake(x, y, width, height)
+    }
+    
     func saveToCameraRoll() {
-        if let videoConnection = imageOutput.connectionWithMediaType(AVMediaTypeVideo) {
-            imageOutput.captureStillImageAsynchronouslyFromConnection(videoConnection) {
-                (imageDataSampleBuffer, error) -> Void in
-                let imageData = AVCaptureStillImageOutput.jpegStillImageNSDataRepresentation(imageDataSampleBuffer)
-                let image = UIImage(data: imageData)
-
-                UIGraphicsBeginImageContextWithOptions((image?.size)!, true, 0)
-                image?.drawInRect(CGRectMake(0, 0, (image?.size.width)!, (image?.size.height)!))
+        guard let videoConnection = imageOutput.connectionWithMediaType(AVMediaTypeVideo) else { return }
+        
+        imageOutput.captureStillImageAsynchronouslyFromConnection(videoConnection) {
+            (imageDataSampleBuffer, error) -> Void in
+            let imageData = AVCaptureStillImageOutput.jpegStillImageNSDataRepresentation(imageDataSampleBuffer)
+            guard let image = UIImage(data: imageData) else { return }
+            
+            UIGraphicsBeginImageContextWithOptions(image.size, true, 0)
+            image.drawInRect(CGRectMake(0, 0, image.size.width, image.size.height))
+            
+            let cameraImage = CIImage(image: image)
+            let features = self.faceDetector.featuresInImage(cameraImage!, options: [ CIDetectorImageOrientation : self.exifOrientation])
+            
+            let fdesc = CMSampleBufferGetFormatDescription(imageDataSampleBuffer)
+            let cleanAperture = CMVideoFormatDescriptionGetCleanAperture(fdesc!, false)
+            
+            features.forEach { (ff:CIFeature) -> () in
+                var faceRect = ff.bounds
+                    
+                let previewBox = self.videoUtil.previewBoxWithGravity(self.previewLayer.videoGravity, frameSize: image.size, apertureSize: cleanAperture.size)
                 
-                let cameraImage = CIImage(image: image!)
-                let features = self.faceDetector.featuresInImage(cameraImage!, options: [ CIDetectorImageOrientation : self.exifOrientation])
+                faceRect = self.videoUtil.convertFrame(faceRect, previewBox: previewBox, videoBox: cleanAperture, isMirrored: false)
                 
-                let fdesc = CMSampleBufferGetFormatDescription(imageDataSampleBuffer)
-                let cleanAperture = CMVideoFormatDescriptionGetCleanAperture(fdesc!, false)
-                
-                features.forEach { (ff:CIFeature) -> () in
-                    var faceRect = ff.bounds
-                    
-                    let previewBox = self.videoUtil.previewBoxWithGravity(self.previewLayer.videoGravity, frameSize: (image?.size)!, apertureSize: cleanAperture.size)
-                    
-                    faceRect = self.videoUtil.convertFrame(faceRect, previewBox: previewBox, videoBox: cleanAperture, isMirrored: false)
-                    
-                    let hat_width = CGFloat(260.0)
-                    let hat_height = CGFloat(360.0)
-                    
-                    let head_start_y = CGFloat(150.0)
-                    let head_start_x = CGFloat(78.0)
-                    
-                    var width = faceRect.size.width * (hat_width / (hat_width - head_start_x))
-                    var height = width * hat_height/hat_width
-                    var y = faceRect.origin.y - (height * head_start_y) / hat_height
-                    var x = faceRect.origin.x - (head_start_x * width / hat_width)
-                    self.hatImgView.image?.drawInRect(CGRectMake(x, y, width, height))
-                    
-                    let beard_width = CGFloat(192.0)
-                    let beard_height = CGFloat(171.0)
-                    width = faceRect.size.width * 0.6
-                    height = width * beard_height/beard_width
-                    y = faceRect.origin.y + faceRect.size.height - (85 * height/beard_height)
-                    x = faceRect.origin.x + (faceRect.size.width - width) / 2
-                    self.beardImgView.image?.drawInRect(CGRectMake(x, y, width, height))
-                    
-                    let mustache_width = CGFloat(212.0)
-                    let mustache_height = CGFloat(58.0)
-                    width = faceRect.size.width * 0.9
-                    height = width * mustache_height/mustache_width
-                    y = y - height + 5
-                    x = faceRect.origin.x + (faceRect.size.width - width)/2
-                    self.mustacheImgView.image?.drawInRect(CGRectMake(x, y, width, height))
-                }
-                
-                let outImage = UIGraphicsGetImageFromCurrentImageContext()
-                UIGraphicsEndImageContext()
-                
-                UIImageWriteToSavedPhotosAlbum(outImage, nil, nil, nil)
+                let hatRect = self.hatDestRect(260.0, hat_height: 360.0, faceRect: faceRect)
+                self.hatImgView.image?.drawInRect(hatRect)
+                let beardRect = self.beardDestRect(192.0, beard_height: 171.0, faceRect: faceRect)
+                self.beardImgView.image?.drawInRect(beardRect)
+                self.mustacheImgView.image?.drawInRect(self.mustacheDestRect(212.0, mustache_height: 58.0, x: beardRect.origin.x, y: beardRect.origin.y, faceRect: faceRect))
+            }
+            
+            let outImage = UIGraphicsGetImageFromCurrentImageContext()
+            UIGraphicsEndImageContext()
+            UIImageWriteToSavedPhotosAlbum(outImage, nil, nil, nil)
             }
         }
-    }
 }
+
 
